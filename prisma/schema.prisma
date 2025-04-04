@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String?
+  role          Role      @default(STUDENT)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  courses       Course[]  @relation("CourseEnrollment")
+  assignments   Assignment[]
+  submissions   Submission[]
+}
+
+model Course {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  code        String       @unique
+  instructor  User         @relation(fields: [instructorId], references: [id])
+  instructorId String
+  students    User[]       @relation("CourseEnrollment")
+  assignments Assignment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Assignment {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  dueDate     DateTime
+  course      Course       @relation(fields: [courseId], references: [id])
+  courseId    String
+  submissions Submission[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Submission {
+  id          String    @id @default(cuid())
+  content     String
+  grade       Float?
+  feedback    String?
+  student     User      @relation(fields: [studentId], references: [id])
+  studentId   String
+  assignment  Assignment @relation(fields: [assignmentId], references: [id])
+  assignmentId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum Role {
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+} 
